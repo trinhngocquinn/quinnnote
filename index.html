@@ -3,53 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task Manager</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Task Manager - Kanban</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header>
-    <h1>✨ Task Manager</h1>
-    <button id="archiveToggle">📦 Archived</button>
-    <div class="filters">
-      <input type="date" id="filterDate" />
-      <input type="text" id="filterTag" placeholder="Filter by tag..." />
-    </div>
-    <div class="new-task">
-      <input type="text" id="taskTitle" placeholder="Task title" />
-      <input type="date" id="taskDue" />
-      <input type="text" id="taskTags" placeholder="#Tag" />
-      <input type="text" id="taskNote" placeholder="Note (optional)" />
-      <select id="taskRepeat">
+  <div class="app-container">
+    <h1>Task Manager</h1>
+    <form id="task-form">
+      <input type="text" id="task-title" placeholder="Task title" required/>
+      <input type="date" id="task-deadline"/>
+      <input type="text" id="task-tag" placeholder="#tag"/>
+      <input type="text" id="task-description" placeholder="Description"/>
+      <select id="task-repeat">
         <option value="">No Repeat</option>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
+        <option value="daily">Repeat Daily</option>
+        <option value="weekly">Repeat Weekly</option>
+        <option value="monthly">Repeat Monthly</option>
       </select>
-      <button id="addTask">＋ Add Task</button>
-    </div>
-  </header>
+      <button type="submit">Add Task</button>
+    </form>
 
-  <main>
     <div class="kanban">
       <div class="column" data-status="todo">
-        <h2>📌 To Do</h2>
-        <div class="task-list" id="todoList"></div>
+        <h2>To Do</h2>
+        <div class="task-list" id="todo-list"></div>
       </div>
       <div class="column" data-status="in-progress">
-        <h2>⏳ In Progress</h2>
-        <div class="task-list" id="progressList"></div>
+        <h2>In Progress</h2>
+        <div class="task-list" id="in-progress-list"></div>
       </div>
       <div class="column" data-status="done">
-        <h2>✅ Done</h2>
-        <div class="task-list" id="doneList"></div>
+        <h2>Done</h2>
+        <div class="task-list" id="done-list"></div>
       </div>
     </div>
-    <div class="archived hidden" id="archiveList">
-      <h2>📦 Archived Tasks</h2>
-      <div class="task-list" id="archivedContainer"></div>
-    </div>
-  </main>
 
+    <button id="toggle-archive">Show Archived</button>
+    <div id="archive" class="hidden">
+      <h2>Archived Tasks</h2>
+      <div class="task-list" id="archive-list"></div>
+    </div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
