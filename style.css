@@ -29,6 +29,11 @@ input, select, button {
   font-size: 1em;
 }
 
+input[type="text"], input[type="date"], select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 button {
   background-color: #fad390;
   border: none;
@@ -62,17 +67,34 @@ button:hover {
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
-  cursor: move;
-  transition: box-shadow 0.2s;
+  cursor: grab;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
 }
 
 .task:hover {
   box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  transform: scale(1.01);
 }
 
 .task .meta {
   font-size: 0.85em;
   margin-top: 5px;
+}
+
+.task button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: none;
+  border: none;
+  font-size: 1em;
+  color: #999;
+  cursor: pointer;
+}
+
+.task button:hover {
+  color: #e74c3c;
 }
 
 .hidden {
