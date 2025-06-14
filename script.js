@@ -1,128 +1,131 @@
-let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-let archive = JSON.parse(localStorage.getItem('archive') || '[]');
+let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+
+const lists = {
+  "todo": document.getElementById("todoList"),
+  "in-progress": document.getElementById("progressList"),
+  "done": document.getElementById("doneList"),
+  "archived": document.getElementById("archivedContainer")
+};
+
+const archiveToggle = document.getElementById("archiveToggle");
+const archiveList = document.getElementById("archiveList");
 
 function saveTasks() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-function saveArchive() {
-  localStorage.setItem('archive', JSON.stringify(archive));
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function render() {
-  ['todo', 'inprogress', 'done'].forEach(status => {
-    const container = document.getElementById(`${status}-list`);
-    container.innerHTML = '';
-    tasks.filter(t => t.status === status).forEach(task => {
-      if (shouldHide(task)) return;
-      const el = document.createElement('div');
-      el.className = 'task';
-      el.setAttribute('draggable', true);
-      el.dataset.id = task.id;
-      el.innerHTML = `
-        <div class="tag" style="background:${tagColor(task.tag)}">${task.tag}</div>
-        <strong>${task.title}</strong>
-        <div>${task.desc || ''}</div>
-        <div>📅 ${task.deadline || 'No due'}</div>
-        <div class="controls">
-          <input type="checkbox" ${task.status === 'done' ? 'checked' : ''} onclick="markDone('${task.id}')"/>
-          <button onclick="deleteTask('${task.id}')">🗑️</button>
-        </div>`;
-      el.ondragstart = e => e.dataTransfer.setData('text/plain', task.id);
-      container.appendChild(el);
+function createTagColor(tag) {
+  const colors = {
+    work: "#f39c12",
+    study: "#3498db",
+    health: "#2ecc71",
+    urgent: "#e74c3c"
+  };
+  return colors[tag.toLowerCase()] || "#9b59b6";
+}
+
+function renderTasks() {
+  Object.values(lists).forEach(list => list.innerHTML = "");
+  const filterDate = document.getElementById("filterDate").value;
+  const filterTag = document.getElementById("filterTag").value.toLowerCase();
+
+  const now = new Date();
+  tasks.forEach(task => {
+    if (task.status === "archived" && !archiveList.classList.contains("hidden")) return;
+    if (filterDate && task.due !== filterDate) return;
+    if (filterTag && !task.tags.some(t => t.toLowerCase().includes(filterTag))) return;
+
+    const div = document.createElement("div");
+    div.className = "task";
+    div.draggable = true;
+    div.dataset.id = task.id;
+
+    let tagHTML = task.tags.map(t => `<span class="tag" style="background:${createTagColor(t)}">${t}</span>`).join("");
+    div.innerHTML = `
+      <input type="checkbox" ${task.status === "done" ? "checked" : ""}/>
+      <strong>${task.title}</strong>
+      <button class="delete">×</button>
+      <div class="meta">
+        ${task.note || ""}<br/>
+        📅 ${task.due || ""} ${tagHTML}
+      </div>
+    `;
+
+    div.querySelector("input[type=checkbox]").addEventListener("change", e => {
+      task.status = e.target.checked ? "done" : "todo";
+      if (task.status === "done") task.completedAt = Date.now();
+      renderTasks(); saveTasks();
     });
+
+    div.querySelector(".delete").onclick = () => {
+      tasks = tasks.filter(t => t.id !== task.id);
+      renderTasks(); saveTasks();
+    };
+
+    div.addEventListener("dragstart", e => e.dataTransfer.setData("id", task.id));
+    lists[task.status]?.appendChild(div);
   });
-}
-function shouldHide(task) {
-  const fdate = document.getElementById('filter-date').value;
-  const ftag = document.getElementById('filter-tag').value.toLowerCase();
-  if (fdate && task.deadline !== fdate) return true;
-  if (ftag && !task.tag.toLowerCase().includes(ftag)) return true;
-  return false;
-}
-function tagColor(tag) {
-  const palette = ['#f2c57c', '#86e3ce', '#ffaaa5', '#c3bef0', '#d5aaff'];
-  return palette[tag.length % palette.length];
 }
 
-function addTask() {
-  const task = {
-    id: crypto.randomUUID(),
-    title: document.getElementById('task-title').value,
-    deadline: document.getElementById('task-deadline').value,
-    tag: document.getElementById('task-tag').value,
-    desc: document.getElementById('task-desc').value,
-    repeat: document.getElementById('task-repeat').value,
-    status: 'todo',
-    created: Date.now()
-  };
-  tasks.push(task);
-  saveTasks();
-  render();
-}
-function markDone(id) {
-  const task = tasks.find(t => t.id === id);
-  task.status = 'done';
-  task.doneAt = Date.now();
-  saveTasks();
-  render();
-}
-function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  saveTasks();
-  render();
-}
-function autoArchive() {
-  const now = Date.now();
-  tasks = tasks.filter(task => {
-    if (task.status === 'done' && now - task.doneAt > 3600000) {
-      archive.push(task);
-      return false;
-    }
-    return true;
-  });
-  saveTasks();
-  saveArchive();
-  render();
-}
-function autoRepeat() {
-  const today = new Date().toISOString().slice(0, 10);
-  tasks.forEach(t => {
-    if (t.status === 'done' && t.deadline === today && t.repeat) {
-      const newTask = { ...t, id: crypto.randomUUID(), status: 'todo' };
-      if (t.repeat === 'daily') newTask.deadline = nextDate(today, 1);
-      if (t.repeat === 'weekly') newTask.deadline = nextDate(today, 7);
-      if (t.repeat === 'monthly') newTask.deadline = nextDate(today, 30);
-      tasks.push(newTask);
-    }
-  });
-  saveTasks();
-}
-function nextDate(dateStr, days) {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-document.getElementById('add-task').onclick = addTask;
-document.querySelectorAll('.task-list').forEach(el => {
-  el.ondragover = e => e.preventDefault();
-  el.ondrop = e => {
-    const id = e.dataTransfer.getData('text/plain');
+document.querySelectorAll(".task-list").forEach(list => {
+  list.addEventListener("dragover", e => e.preventDefault());
+  list.addEventListener("drop", e => {
+    const id = e.dataTransfer.getData("id");
+    const targetStatus = list.parentElement.dataset.status;
     const task = tasks.find(t => t.id === id);
-    task.status = el.parentElement.dataset.status;
-    saveTasks();
-    render();
-  };
-});
-document.getElementById('show-archive').onclick = () => {
-  const arch = document.getElementById('archived-list');
-  arch.innerHTML = archive.map(t => `<li>${t.title} – ${t.deadline}</li>`).join('');
-  document.getElementById('archive-modal').style.display = 'block';
-};
-['filter-date', 'filter-tag'].forEach(id => {
-  document.getElementById(id).oninput = render;
+    if (task) {
+      task.status = targetStatus;
+      renderTasks(); saveTasks();
+    }
+  });
 });
 
-render();
-setInterval(autoArchive, 30000);
-setInterval(autoRepeat, 60000);
+document.getElementById("addTask").onclick = () => {
+  const title = document.getElementById("taskTitle").value.trim();
+  const due = document.getElementById("taskDue").value;
+  const tags = document.getElementById("taskTags").value.split("#").filter(Boolean).map(t => t.trim());
+  const note = document.getElementById("taskNote").value.trim();
+  const repeat = document.getElementById("taskRepeat").value;
+
+  if (!title) return;
+
+  tasks.push({
+    id: Date.now().toString(),
+    title, due, tags, note, repeat,
+    status: "todo",
+    createdAt: Date.now()
+  });
+
+  renderTasks(); saveTasks();
+};
+
+archiveToggle.onclick = () => archiveList.classList.toggle("hidden");
+
+function checkArchiving() {
+  const now = Date.now();
+  tasks.forEach(task => {
+    if (task.status === "done" && now - task.completedAt >= 3600000) {
+      task.status = "archived";
+    }
+  });
+  renderTasks(); saveTasks();
+}
+
+function checkRepeats() {
+  const today = new Date().toISOString().split("T")[0];
+  tasks.forEach(task => {
+    if (!task.repeat || task.due !== today || task.status !== "done") return;
+
+    let nextDate = new Date(task.due);
+    if (task.repeat === "daily") nextDate.setDate(nextDate.getDate() + 1);
+    if (task.repeat === "weekly") nextDate.setDate(nextDate.getDate() + 7);
+    if (task.repeat === "monthly") nextDate.setMonth(nextDate.getMonth() + 1);
+
+    tasks.push({ ...task, id: Date.now().toString(), due: nextDate.toISOString().split("T")[0], status: "todo" });
+  });
+  saveTasks();
+}
+
+renderTasks();
+setInterval(checkArchiving, 60000); // 1 phút
+checkRepeats();
