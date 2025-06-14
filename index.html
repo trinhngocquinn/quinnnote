@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task App</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Task App</h1>
+        <div class="form">
+            <input type="text" id="title" placeholder="Title" />
+            <input type="date" id="due-date" />
+            <select id="repeat">
+                <option value="">Repeat</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+            <select id="tag">
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <div class="filters">
+            <input type="date" id="filter-date" onchange="filterTasks()" />
+            <select id="filter-tag" onchange="filterTasks()">
+                <option value="">All Tags</option>
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+            <button onclick="showArchived()">Archived</button>
+        </div>
+        <div class="board">
+            <div class="column" id="todo"><h2>To Do</h2></div>
+            <div class="column" id="in-progress"><h2>In Progress</h2></div>
+            <div class="column" id="completed"><h2>Completed</h2></div>
+        </div>
+        <div class="column" id="archived" style="display:none;"><h2>Archived</h2></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
