@@ -1,107 +1,127 @@
-:root {
-  --bg: #fffdeb;
-  --accent: #f2c57c;
-  --text: #333;
-  --font: 'Segoe UI', sans-serif;
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
   margin: 0;
-  padding: 0;
-}
-
-.header {
-  text-align: center;
-  background: var(--accent);
+  background-color: #fffde6;
+  color: #333;
   padding: 1rem;
 }
 
-.filters {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin: 1rem;
-}
-
-.task-creator {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
+header {
+  text-align: center;
   margin-bottom: 1rem;
 }
 
-.task-creator input,
-.task-creator select,
-.task-creator textarea {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  font-family: var(--font);
+h1 {
+  color: #5e4b3c;
 }
 
-.board {
+.filters, .new-task {
   display: flex;
-  gap: 1rem;
   justify-content: center;
-  padding: 1rem;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+input, select {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #ffc;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #fdf2c4;
+}
+
+.kanban {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .column {
-  background: #fff;
-  border-radius: 10px;
+  background: #fffbe3;
   padding: 1rem;
+  border-radius: 8px;
   width: 30%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  min-width: 250px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 .task {
-  background: #fafafa;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-radius: 8px;
-  cursor: grab;
-  border-left: 4px solid var(--accent);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: white;
+  border-left: 6px solid #ccc;
+  padding: 0.6rem;
+  margin-bottom: 0.6rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.1s;
 }
 
 .task:hover {
-  background: #fff6d9;
+  transform: scale(1.01);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.task .meta {
+  font-size: 0.85rem;
+  color: #555;
 }
 
 .task .tag {
-  font-weight: bold;
-  color: white;
-  padding: 0 6px;
-  border-radius: 4px;
   display: inline-block;
-  margin-bottom: 0.25rem;
+  margin-right: 5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
 }
 
-.task .controls {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
-}
-
-.task .controls button {
-  background: transparent;
+.task button.delete {
+  float: right;
+  background: none;
   border: none;
-  cursor: pointer;
+  color: #999;
   font-size: 1rem;
+  cursor: pointer;
 }
 
-.archive-modal {
+.task input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.archived.hidden {
   display: none;
-  position: fixed;
-  top: 10%;
-  left: 20%;
-  width: 60%;
-  background: white;
+}
+
+.archived {
+  margin-top: 2rem;
+  background: #eee;
   padding: 1rem;
-  border: 1px solid #aaa;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .kanban {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .column {
+    width: 90%;
+  }
 }
