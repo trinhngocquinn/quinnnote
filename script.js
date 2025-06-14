@@ -1,85 +1,114 @@
+let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+let archive = JSON.parse(localStorage.getItem("archive") || "[]");
 
-let tasks = [];
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 
-function addTask() {
-    const title = document.getElementById("title").value;
-    const dueDate = document.getElementById("due-date").value;
-    const repeat = document.getElementById("repeat").value;
-    const tag = document.getElementById("tag").value;
-
-    const task = {
-        id: Date.now(),
-        title,
-        dueDate,
-        repeat,
-        tag,
-        status: "todo",
-        created: new Date(),
-        completedTime: null
-    };
-
-    tasks.push(task);
-    renderTasks();
+function saveArchive() {
+  localStorage.setItem("archive", JSON.stringify(archive));
 }
 
 function renderTasks() {
-    ["todo", "in-progress", "completed", "archived"].forEach(id => {
-        document.getElementById(id).innerHTML = `<h2>${id.replace("-", " ")}</h2>`;
+  ["todo", "inprogress", "done"].forEach(status => {
+    const col = document.getElementById(status);
+    col.innerHTML = "";
+    tasks.filter(t => t.status === status && matchFilter(t)).forEach(task => {
+      const div = document.createElement("div");
+      div.className = "task";
+      div.textContent = task.name;
+      div.draggable = true;
+      div.dataset.id = task.id;
+      div.dataset.tag = task.tag || "";
+      div.addEventListener("dragstart", dragStart);
+      div.addEventListener("dblclick", () => completeTask(task.id));
+      col.appendChild(div);
     });
-
-    const now = new Date();
-    tasks.forEach(task => {
-        if (task.status === "completed" && task.completedTime && (now - new Date(task.completedTime)) > 3600000) {
-            task.status = "archived";
-        }
-
-        const taskEl = document.createElement("div");
-        taskEl.className = "task";
-        taskEl.innerHTML = `
-            <strong>${task.title}</strong><br />
-            ${task.dueDate}<br />
-            <span class="tag ${task.tag}">${task.tag}</span>
-            <button class="delete" onclick="deleteTask(${task.id})">x</button>
-            <br/><input type="checkbox" onchange="toggleComplete(${task.id})" ${task.status === "completed" ? "checked" : ""} />
-        `;
-
-        document.getElementById(task.status).appendChild(taskEl);
-    });
+  });
 }
 
-function deleteTask(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    renderTasks();
+function dragStart(e) {
+  e.dataTransfer.setData("text", e.target.dataset.id);
 }
 
-function toggleComplete(id) {
+document.querySelectorAll(".task-list").forEach(col => {
+  col.addEventListener("dragover", e => e.preventDefault());
+  col.addEventListener("drop", e => {
+    const id = e.dataTransfer.getData("text");
     const task = tasks.find(t => t.id === id);
-    if (task.status !== "completed") {
-        task.status = "completed";
-        task.completedTime = new Date();
-    } else {
-        task.status = "todo";
-        task.completedTime = null;
+    if (task) {
+      task.status = col.id;
+      saveTasks();
+      renderTasks();
     }
+  });
+});
+
+function addTask() {
+  const name = document.getElementById("taskInput").value.trim();
+  const due = document.getElementById("dueDate").value;
+  const repeat = document.getElementById("repeatSelect").value;
+  const tag = document.getElementById("tagInput").value.trim();
+  if (!name) return;
+
+  const task = {
+    id: Date.now().toString(),
+    name, due, repeat, tag,
+    status: "todo",
+    created: Date.now()
+  };
+  tasks.push(task);
+  saveTasks();
+  renderTasks();
+}
+
+function completeTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (task) {
+    task.status = "done";
+    saveTasks();
     renderTasks();
+    setTimeout(() => archiveTask(id), 3600000); // 1 hour
+  }
 }
 
-function filterTasks() {
-    const date = document.getElementById("filter-date").value;
-    const tag = document.getElementById("filter-tag").value;
-
-    document.querySelectorAll(".task").forEach(task => task.style.display = "block");
-
-    tasks.forEach(task => {
-        const el = [...document.querySelectorAll(".task")].find(t => t.innerText.includes(task.title));
-        if (date && task.dueDate !== date) el.style.display = "none";
-        if (tag && task.tag !== tag) el.style.display = "none";
-    });
+function archiveTask(id) {
+  const index = tasks.findIndex(t => t.id === id && t.status === "done");
+  if (index !== -1) {
+    archive.push(tasks[index]);
+    tasks.splice(index, 1);
+    saveTasks();
+    saveArchive();
+    renderTasks();
+  }
 }
 
-function showArchived() {
-    const arch = document.getElementById("archived");
-    arch.style.display = arch.style.display === "none" ? "block" : "none";
+function toggleArchive() {
+  const archiveDiv = document.getElementById("archive");
+  archiveDiv.style.display = archiveDiv.style.display === "none" ? "block" : "none";
+  renderArchive();
 }
 
-setInterval(renderTasks, 60000);
+function renderArchive() {
+  const div = document.getElementById("archivedTasks");
+  div.innerHTML = "";
+  archive.forEach(task => {
+    const d = document.createElement("div");
+    d.className = "task";
+    d.textContent = task.name + " (archived)";
+    div.appendChild(d);
+  });
+}
+
+function matchFilter(task) {
+  const tag = document.getElementById("tagFilter").value;
+  const date = document.getElementById("dateFilter").value;
+  if (tag && task.tag !== tag) return false;
+  if (date && task.due !== date) return false;
+  return true;
+}
+
+document.getElementById("tagFilter").addEventListener("change", renderTasks);
+document.getElementById("dateFilter").addEventListener("change", renderTasks);
+
+renderTasks();
