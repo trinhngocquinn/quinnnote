@@ -1,131 +1,89 @@
-let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+const taskForm = document.getElementById("task-form");
+const archiveToggle = document.getElementById("toggle-archive");
+const archiveSection = document.getElementById("archive");
 
-const lists = {
-  "todo": document.getElementById("todoList"),
-  "in-progress": document.getElementById("progressList"),
-  "done": document.getElementById("doneList"),
-  "archived": document.getElementById("archivedContainer")
-};
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-const archiveToggle = document.getElementById("archiveToggle");
-const archiveList = document.getElementById("archiveList");
+function renderTasks() {
+  ["todo", "in-progress", "done", "archive"].forEach(status => {
+    const list = document.getElementById(`${status}-list`);
+    if (list) list.innerHTML = '';
+  });
 
-function saveTasks() {
+  tasks.forEach(task => {
+    if (task.status === "archived") return;
+
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task";
+    taskDiv.draggable = true;
+    taskDiv.dataset.id = task.id;
+    taskDiv.innerHTML = `
+      <strong>${task.title}</strong>
+      <div class="meta">${task.deadline || ""} ${task.tag || ""}</div>
+      <div class="meta">${task.description || ""}</div>
+      <button onclick="deleteTask('${task.id}')">🗑</button>
+    `;
+    taskDiv.addEventListener("dragstart", handleDragStart);
+    taskDiv.addEventListener("dragend", handleDragEnd);
+
+    const list = document.getElementById(`${task.status}-list`);
+    list.appendChild(taskDiv);
+  });
+
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function createTagColor(tag) {
-  const colors = {
-    work: "#f39c12",
-    study: "#3498db",
-    health: "#2ecc71",
-    urgent: "#e74c3c"
-  };
-  return colors[tag.toLowerCase()] || "#9b59b6";
+function handleDragStart(e) {
+  e.dataTransfer.setData("text/plain", e.target.dataset.id);
 }
-
-function renderTasks() {
-  Object.values(lists).forEach(list => list.innerHTML = "");
-  const filterDate = document.getElementById("filterDate").value;
-  const filterTag = document.getElementById("filterTag").value.toLowerCase();
-
-  const now = new Date();
-  tasks.forEach(task => {
-    if (task.status === "archived" && !archiveList.classList.contains("hidden")) return;
-    if (filterDate && task.due !== filterDate) return;
-    if (filterTag && !task.tags.some(t => t.toLowerCase().includes(filterTag))) return;
-
-    const div = document.createElement("div");
-    div.className = "task";
-    div.draggable = true;
-    div.dataset.id = task.id;
-
-    let tagHTML = task.tags.map(t => `<span class="tag" style="background:${createTagColor(t)}">${t}</span>`).join("");
-    div.innerHTML = `
-      <input type="checkbox" ${task.status === "done" ? "checked" : ""}/>
-      <strong>${task.title}</strong>
-      <button class="delete">×</button>
-      <div class="meta">
-        ${task.note || ""}<br/>
-        📅 ${task.due || ""} ${tagHTML}
-      </div>
-    `;
-
-    div.querySelector("input[type=checkbox]").addEventListener("change", e => {
-      task.status = e.target.checked ? "done" : "todo";
-      if (task.status === "done") task.completedAt = Date.now();
-      renderTasks(); saveTasks();
-    });
-
-    div.querySelector(".delete").onclick = () => {
-      tasks = tasks.filter(t => t.id !== task.id);
-      renderTasks(); saveTasks();
-    };
-
-    div.addEventListener("dragstart", e => e.dataTransfer.setData("id", task.id));
-    lists[task.status]?.appendChild(div);
-  });
-}
+function handleDragEnd() {}
 
 document.querySelectorAll(".task-list").forEach(list => {
   list.addEventListener("dragover", e => e.preventDefault());
   list.addEventListener("drop", e => {
-    const id = e.dataTransfer.getData("id");
-    const targetStatus = list.parentElement.dataset.status;
+    const id = e.dataTransfer.getData("text/plain");
     const task = tasks.find(t => t.id === id);
-    if (task) {
-      task.status = targetStatus;
-      renderTasks(); saveTasks();
+    const status = list.parentElement.dataset.status;
+    task.status = status;
+    if (status === "done") {
+      setTimeout(() => archiveTask(id), 3600000); // 1 hour
     }
+    renderTasks();
   });
 });
 
-document.getElementById("addTask").onclick = () => {
-  const title = document.getElementById("taskTitle").value.trim();
-  const due = document.getElementById("taskDue").value;
-  const tags = document.getElementById("taskTags").value.split("#").filter(Boolean).map(t => t.trim());
-  const note = document.getElementById("taskNote").value.trim();
-  const repeat = document.getElementById("taskRepeat").value;
-
-  if (!title) return;
-
-  tasks.push({
+taskForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const task = {
     id: Date.now().toString(),
-    title, due, tags, note, repeat,
+    title: taskForm["task-title"].value,
+    deadline: taskForm["task-deadline"].value,
+    tag: taskForm["task-tag"].value,
+    description: taskForm["task-description"].value,
+    repeat: taskForm["task-repeat"].value,
     status: "todo",
-    createdAt: Date.now()
-  });
+    created: new Date().toISOString()
+  };
+  tasks.push(task);
+  renderTasks();
+  taskForm.reset();
+});
 
-  renderTasks(); saveTasks();
-};
-
-archiveToggle.onclick = () => archiveList.classList.toggle("hidden");
-
-function checkArchiving() {
-  const now = Date.now();
-  tasks.forEach(task => {
-    if (task.status === "done" && now - task.completedAt >= 3600000) {
-      task.status = "archived";
-    }
-  });
-  renderTasks(); saveTasks();
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  renderTasks();
 }
 
-function checkRepeats() {
-  const today = new Date().toISOString().split("T")[0];
-  tasks.forEach(task => {
-    if (!task.repeat || task.due !== today || task.status !== "done") return;
-
-    let nextDate = new Date(task.due);
-    if (task.repeat === "daily") nextDate.setDate(nextDate.getDate() + 1);
-    if (task.repeat === "weekly") nextDate.setDate(nextDate.getDate() + 7);
-    if (task.repeat === "monthly") nextDate.setMonth(nextDate.getMonth() + 1);
-
-    tasks.push({ ...task, id: Date.now().toString(), due: nextDate.toISOString().split("T")[0], status: "todo" });
-  });
-  saveTasks();
+function archiveTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (task && task.status === "done") {
+    task.status = "archived";
+    renderTasks();
+  }
 }
+
+archiveToggle.addEventListener("click", () => {
+  archiveSection.classList.toggle("hidden");
+});
 
 renderTasks();
-setInterval(checkArchiving, 60000); // 1 phút
-checkRepeats();
