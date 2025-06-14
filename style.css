@@ -1,0 +1,71 @@
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #fbeee6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+h1 {
+    text-align: center;
+    font-size: 3rem;
+    color: #2b2d42;
+}
+.form, .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+input, select, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #ef476f;
+    color: white;
+    border: none;
+}
+.board {
+    display: flex;
+    gap: 10px;
+}
+.column {
+    flex: 1;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+}
+.column h2 {
+    text-align: center;
+}
+.task {
+    background: #f8f8f8;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+.tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 5px;
+}
+.tag.Work { background: #b2e2f2; }
+.tag.Personal { background: #fbc4ab; }
+.tag.Urgent { background: #ffe066; }
+button.delete {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: #ff595e;
+    font-size: 12px;
+}
