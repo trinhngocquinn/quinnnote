@@ -1,79 +1,107 @@
+:root {
+  --bg: #fffdeb;
+  --accent: #f2c57c;
+  --text: #333;
+  --font: 'Segoe UI', sans-serif;
+}
+
 body {
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  background-color: #fffdf5;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
   margin: 0;
   padding: 0;
-  color: #333;
 }
 
-header h1 {
-  background-color: #fff3d1;
-  color: #333;
+.header {
   text-align: center;
-  padding: 20px;
-  margin: 0;
-  font-size: 2em;
-}
-
-.kanban {
-  display: flex;
-  justify-content: space-around;
-  padding: 20px;
-  gap: 20px;
-}
-
-.column {
-  background-color: #fffaf0;
-  padding: 10px;
-  border-radius: 8px;
-  width: 30%;
-  min-height: 300px;
-  border: 1px dashed #ccc;
-}
-
-.column h2 {
-  text-align: center;
-}
-
-.task {
-  background-color: #fdf3dc;
-  border-left: 10px solid #f4a261;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  cursor: grab;
-}
-
-.task[data-tag="school"] { border-left-color: #f4a261; }
-.task[data-tag="work"] { border-left-color: #2a9d8f; }
-.task[data-tag="personal"] { border-left-color: #e76f51; }
-
-.new-task {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px;
-}
-
-.footer-buttons {
-  text-align: center;
-  margin: 10px;
+  background: var(--accent);
+  padding: 1rem;
 }
 
 .filters {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  padding: 10px;
+  gap: 1rem;
+  margin: 1rem;
 }
 
-input, select, button {
-  padding: 6px;
-  border-radius: 4px;
+.task-creator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.task-creator input,
+.task-creator select,
+.task-creator textarea {
+  padding: 0.5rem;
   border: 1px solid #ccc;
+  font-family: var(--font);
 }
 
-button {
-  background-color: #ffe8b6;
+.board {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.column {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  width: 30%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.task {
+  background: #fafafa;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: grab;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.task:hover {
+  background: #fff6d9;
+}
+
+.task .tag {
+  font-weight: bold;
+  color: white;
+  padding: 0 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.task .controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.task .controls button {
+  background: transparent;
+  border: none;
   cursor: pointer;
+  font-size: 1rem;
+}
+
+.archive-modal {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  background: white;
+  padding: 1rem;
+  border: 1px solid #aaa;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
